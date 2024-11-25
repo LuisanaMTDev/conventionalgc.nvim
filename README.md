@@ -1,0 +1,1 @@
+# conventionalgc.nvim
