@@ -63,7 +63,6 @@ conventionalgc.setup = function()
 		local input = string.sub(request.context.cursor_before_line, request.offset - 1)
 		local col = request.context.cursor.col
 		local previous_charater = input:sub(col - 1, col - 1)
-		print(previous_charater)
 
 		local git_scopes_file = vim.fn.expand(find_file_in_git_repo())
 		if vim.fn.filereadable(git_scopes_file) == 0 then
