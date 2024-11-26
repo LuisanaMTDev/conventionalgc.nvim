@@ -4,6 +4,32 @@ local conventionalgc = {}
 
 local registered = false
 
+local find_git_root = function()
+	local git_dir = vim.fn.finddir(".git", ".;")
+	if git_dir == "" then
+		return ""
+	else
+		return vim.fn.fnamemodify(git_dir, ":h:h")
+	end
+end
+
+local find_file_in_git_repo = function()
+	local git_root = find_git_root()
+	if not git_root then
+		print("No Git repo found")
+		return ""
+	end
+
+	local pattern = string.format("%s/**/%s*.%s", git_root, "git-scopes", "json")
+	local founded_files = vim.fn.glob(pattern, true, true)
+	if #founded_files <= 0 then
+		print("No git-scopes.json file found")
+		return ""
+	else
+		return founded_files[1]
+	end
+end
+
 conventionalgc.setup = function()
 	if registered then
 		return
@@ -23,7 +49,7 @@ conventionalgc.setup = function()
 	end
 
 	source.get_trigger_characters = function()
-		return { "f", "d", "s", "r", "p", "t", "b", "c", "m" }
+		return { "f", "d", "s", "r", "p", "t", "b", "c", "m", "(" }
 	end
 
 	source.get_keyword_pattern = function()
@@ -35,6 +61,14 @@ conventionalgc.setup = function()
 		--[[ local input = string.sub(request.context.cursor_before_line, request.offset - 1)
     local prefix = string.sub(request.context.cursor_before_line, 1, request.offset - 1) ]]
 		local input = string.sub(request.context.cursor_before_line, request.offset - 1)
+		local col = request.context.cursor.col
+		local previous_charater = input:sub(col - 1, col - 1)
+
+		local git_scopes_file = vim.fn.expand(find_file_in_git_repo())
+		if vim.fn.filereadable(git_scopes_file) == 0 then
+			return
+		end
+		local scopes = vim.fn.json_decode(vim.fn.readfile(git_scopes_file))
 
 		if vim.startswith(input, "f") then
 			local items = {
@@ -112,6 +146,12 @@ conventionalgc.setup = function()
 				items = items,
 				isIncomplete = true,
 			})
+		elseif previous_charater == "(" then
+			local items = {}
+			for _, scope in ipairs(scopes) do
+				table.insert(items, { label = scope, documentation = "Git repo scope." })
+			end
+			callback({ items = items, isIncomplete = true })
 		else
 			callback({ isIncomplete = true })
 		end
@@ -124,38 +164,6 @@ conventionalgc.setup = function()
 			{ name = "conventionalgc" },
 		}),
 	})
-
-	local find_git_root = function()
-		local git_dir = vim.fn.finddir(".git", ".;")
-		if git_dir == "" then
-			return nil
-		else
-			return vim.fn.fnamemodify(git_dir, ":h:h")
-		end
-	end
-
-	local find_file_in_git_repo = function()
-		local git_root = find_git_root()
-		if not git_root then
-			print("No Git repo found")
-			return nil
-		end
-
-		local pattern = string.format("%s/**/%s*.%s", git_root, "git-scopes", "json")
-		local founded_files = vim.fn.glob(pattern, true, true)
-		if #founded_files <= 0 then
-			print("No git-scopes.json file found")
-			return nil
-		else
-			print("git-scopes.json file full path: " .. founded_files[1])
-			return {
-				root = git_root,
-				full_path = founded_files[1],
-			}
-		end
-	end
-
-	find_file_in_git_repo()
 end
 
 return conventionalgc
