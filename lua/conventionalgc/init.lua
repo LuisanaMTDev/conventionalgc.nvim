@@ -124,6 +124,38 @@ conventionalgc.setup = function()
 			{ name = "conventionalgc" },
 		}),
 	})
+
+	local find_git_root = function()
+		local git_dir = vim.fn.finddir(".git", ".;")
+		if git_dir == "" then
+			return nil
+		else
+			return vim.fn.fnamemodify(git_dir, ":h:h")
+		end
+	end
+
+	local find_file_in_git_repo = function()
+		local git_root = find_git_root()
+		if not git_root then
+			print("No Git repo found")
+			return nil
+		end
+
+		local pattern = string.format("%s/**/%s*.%s", git_root, "git-scopes", "json")
+		local founded_files = vim.fn.glob(pattern, true, true)
+		if #founded_files <= 0 then
+			print("No git-scopes.json file found")
+			return nil
+		else
+			print("git-scopes.json file full path: " .. founded_files[1])
+			return {
+				root = git_root,
+				full_path = founded_files[1],
+			}
+		end
+	end
+
+	find_file_in_git_repo()
 end
 
 return conventionalgc
