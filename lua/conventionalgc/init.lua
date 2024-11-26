@@ -30,27 +30,6 @@ local find_file_in_git_repo = function()
 	end
 end
 
-local filter_used_labels = function(used_labels, items, callback)
-	local filtered_items = vim.tbl_filter(function(item)
-		return not vim.tbl_contains(used_labels, item.label)
-	end, items)
-
-	if #filtered_items > 0 then
-		callback({
-			items = filtered_items,
-			isIncomplete = #filtered_items < #items,
-		})
-
-		for _, item in ipairs(filtered_items) do
-			table.insert(used_labels, item.label)
-		end
-	else
-		used_labels = {}
-
-		callback({ items = items, isIncomplete = false })
-	end
-end
-
 conventionalgc.setup = function()
 	if registered then
 		return
@@ -78,8 +57,6 @@ conventionalgc.setup = function()
 		return [[\%(\k\|\.\)\+]]
 	end
 
-	local used_labels = {}
-
 	source.complete = function(self, request, callback)
 		--[[ local input = string.sub(request.context.cursor_before_line, request.offset - 1)
     local prefix = string.sub(request.context.cursor_before_line, 1, request.offset - 1) ]]
@@ -99,11 +76,16 @@ conventionalgc.setup = function()
 				{ label = "feat", documentation = "A new feature" },
 				{ label = "fix", documentation = "A bug fix" },
 			}
-
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif vim.startswith(input, "d") then
 			local items = { { label = "docs", documentation = "Documentation only changes" } }
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif vim.startswith(input, "s") then
 			local items = {
 				{
@@ -111,19 +93,31 @@ conventionalgc.setup = function()
 					documentation = "Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)",
 				},
 			}
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif vim.startswith(input, "r") then
 			local items = {
 				{ label = "refactor", documentation = "A code change that neither fixes a bug nor adds a feature" },
 				{ label = "revert", documentation = "Reverts a previous commit" },
 			}
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif vim.startswith(input, "p") then
 			local items = { { label = "perf", documentation = "A code change that improves performance" } }
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif vim.startswith(input, "t") then
 			local items = { { label = "test", documentation = "Adding missing tests or correcting existing tests" } }
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif vim.startswith(input, "b") then
 			local items = {
 				{
@@ -131,7 +125,10 @@ conventionalgc.setup = function()
 					documentation = "Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)",
 				},
 			}
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif vim.startswith(input, "c") then
 			local items = {
 				{
@@ -140,16 +137,22 @@ conventionalgc.setup = function()
 				},
 				{ label = "chore", documentation = "Other changes that don't modify src or test files" },
 			}
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif vim.startswith(input, "m") then
 			local items = { { label = "merge", documentation = "Merge commits" } }
-			filter_used_labels(used_labels, items, callback)
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
 		elseif previous_charater == "(" then
 			local items = {}
 			for _, scope in ipairs(scopes) do
 				table.insert(items, { label = scope, documentation = "Git repo scope." })
 			end
-			filter_used_labels(used_labels, items, callback)
+			callback({ items = items, isIncomplete = true })
 		else
 			callback({ isIncomplete = true })
 		end
