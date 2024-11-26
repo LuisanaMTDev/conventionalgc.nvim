@@ -37,13 +37,77 @@ conventionalgc.setup = function()
 		local input = string.sub(request.context.cursor_before_line, request.offset - 1)
 
 		if vim.startswith(input, "f") then
-			local items = { { label = "feat" }, { label = "fix" } }
+			local items = {
+				{ label = "feat", documentation = "A new feature" },
+				{ label = "fix", documentation = "A bug fix" },
+			}
 			callback({
 				items = items,
 				isIncomplete = true,
 			})
 		elseif vim.startswith(input, "d") then
-			local items = { { label = "docs" } }
+			local items = { { label = "docs", documentation = "Documentation only changes" } }
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
+		elseif vim.startswith(input, "s") then
+			local items = {
+				{
+					label = "style",
+					documentation = "Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)",
+				},
+			}
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
+		elseif vim.startswith(input, "r") then
+			local items = {
+				{ label = "refactor", documentation = "A code change that neither fixes a bug nor adds a feature" },
+				{ label = "revert", documentation = "Reverts a previous commit" },
+			}
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
+		elseif vim.startswith(input, "p") then
+			local items = { { label = "perf", documentation = "A code change that improves performance" } }
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
+		elseif vim.startswith(input, "t") then
+			local items = { { label = "test", documentation = "Adding missing tests or correcting existing tests" } }
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
+		elseif vim.startswith(input, "b") then
+			local items = {
+				{
+					label = "build",
+					documentation = "Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)",
+				},
+			}
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
+		elseif vim.startswith(input, "c") then
+			local items = {
+				{
+					label = "ci",
+					documentation = "Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)",
+				},
+				{ label = "chore", documentation = "Other changes that don't modify src or test files" },
+			}
+			callback({
+				items = items,
+				isIncomplete = true,
+			})
+		elseif vim.startswith(input, "m") then
+			local items = { { label = "merge", documentation = "Merge commits" } }
 			callback({
 				items = items,
 				isIncomplete = true,
