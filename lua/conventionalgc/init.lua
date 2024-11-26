@@ -121,9 +121,6 @@ conventionalgc.setup = function()
 
 	cmp.setup.filetype("gitcommit", {
 		sources = cmp.config.sources({
-			{ name = "luasnip" },
-			{ name = "path" },
-			{ name = "nvim_lsp" },
 			{ name = "conventionalgc" },
 		}),
 	})
