@@ -59,12 +59,38 @@ conventionalgc.setup = function()
 
 	source.complete = function(self, request, callback)
 		--[[ local input = string.sub(request.context.cursor_before_line, request.offset - 1)
-    local prefix = string.sub(request.context.cursor_before_line, 1, request.offset - 1) ]]
-		local input = string.sub(request.context.cursor_before_line, request.offset - 1)
 		local col = request.context.cursor.col
-		local previous_charater = input:sub(col - 1, col - 1)
+		local previous_charater = input:sub(col - 1, col - 1) ]]
+		local full_line = request.context.cursor_before_line
+		local should_complete = false
+		local first_char = full_line:sub(1, 1)
+		local activate_chars =
+			{ f = true, d = true, s = true, r = true, p = true, t = true, b = true, c = true, m = true }
+		if activate_chars[first_char] then
+			should_complete = true
+		end
 
-		if vim.startswith(input, "f") then
+		local col = request.context.cursor.col
+		local previous_charater = full_line:sub(col - 1, col - 1)
+		if previous_charater == "(" then
+			should_complete = true
+		end
+		if not should_complete then
+			callback({ isIncomplete = true })
+		end
+
+		if previous_charater == "(" then
+			local git_scopes_file = vim.fn.expand(find_file_in_git_repo())
+			if vim.fn.filereadable(git_scopes_file) == 0 then
+				return
+			end
+			local scopes = vim.fn.json_decode(vim.fn.readfile(git_scopes_file))
+			local items = {}
+			for _, scope in ipairs(scopes) do
+				table.insert(items, { label = scope, documentation = "Git repo scope." })
+			end
+			callback({ items = items, isIncomplete = true })
+		elseif vim.startswith(full_line, "f") then
 			local items = {
 				{ label = "feat", documentation = "A new feature" },
 				{ label = "fix", documentation = "A bug fix" },
@@ -73,13 +99,13 @@ conventionalgc.setup = function()
 				items = items,
 				isIncomplete = true,
 			})
-		elseif vim.startswith(input, "d") then
+		elseif vim.startswith(full_line, "d") then
 			local items = { { label = "docs", documentation = "Documentation only changes" } }
 			callback({
 				items = items,
 				isIncomplete = true,
 			})
-		elseif vim.startswith(input, "s") then
+		elseif vim.startswith(full_line, "s") then
 			local items = {
 				{
 					label = "style",
@@ -90,7 +116,7 @@ conventionalgc.setup = function()
 				items = items,
 				isIncomplete = true,
 			})
-		elseif vim.startswith(input, "r") then
+		elseif vim.startswith(full_line, "r") then
 			local items = {
 				{ label = "refactor", documentation = "A code change that neither fixes a bug nor adds a feature" },
 				{ label = "revert", documentation = "Reverts a previous commit" },
@@ -99,19 +125,19 @@ conventionalgc.setup = function()
 				items = items,
 				isIncomplete = true,
 			})
-		elseif vim.startswith(input, "p") then
+		elseif vim.startswith(full_line, "p") then
 			local items = { { label = "perf", documentation = "A code change that improves performance" } }
 			callback({
 				items = items,
 				isIncomplete = true,
 			})
-		elseif vim.startswith(input, "t") then
+		elseif vim.startswith(full_line, "t") then
 			local items = { { label = "test", documentation = "Adding missing tests or correcting existing tests" } }
 			callback({
 				items = items,
 				isIncomplete = true,
 			})
-		elseif vim.startswith(input, "b") then
+		elseif vim.startswith(full_line, "b") then
 			local items = {
 				{
 					label = "build",
@@ -122,7 +148,7 @@ conventionalgc.setup = function()
 				items = items,
 				isIncomplete = true,
 			})
-		elseif vim.startswith(input, "c") then
+		elseif vim.startswith(full_line, "c") then
 			local items = {
 				{
 					label = "ci",
@@ -134,23 +160,12 @@ conventionalgc.setup = function()
 				items = items,
 				isIncomplete = true,
 			})
-		elseif vim.startswith(input, "m") then
+		elseif vim.startswith(full_line, "m") then
 			local items = { { label = "merge", documentation = "Merge commits" } }
 			callback({
 				items = items,
 				isIncomplete = true,
 			})
-		elseif previous_charater == "(" then
-			local git_scopes_file = vim.fn.expand(find_file_in_git_repo())
-			if vim.fn.filereadable(git_scopes_file) == 0 then
-				return
-			end
-			local scopes = vim.fn.json_decode(vim.fn.readfile(git_scopes_file))
-			local items = {}
-			for _, scope in ipairs(scopes) do
-				table.insert(items, { label = scope, documentation = "Git repo scope." })
-			end
-			callback({ items = items, isIncomplete = true })
 		else
 			callback({ isIncomplete = true })
 		end
