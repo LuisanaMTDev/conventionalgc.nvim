@@ -64,12 +64,6 @@ conventionalgc.setup = function()
 		local col = request.context.cursor.col
 		local previous_charater = input:sub(col - 1, col - 1)
 
-		local git_scopes_file = vim.fn.expand(find_file_in_git_repo())
-		if vim.fn.filereadable(git_scopes_file) == 0 then
-			return
-		end
-		local scopes = vim.fn.json_decode(vim.fn.readfile(git_scopes_file))
-
 		if vim.startswith(input, "f") then
 			local items = {
 				{ label = "feat", documentation = "A new feature" },
@@ -147,6 +141,11 @@ conventionalgc.setup = function()
 				isIncomplete = true,
 			})
 		elseif previous_charater == "(" then
+			local git_scopes_file = vim.fn.expand(find_file_in_git_repo())
+			if vim.fn.filereadable(git_scopes_file) == 0 then
+				return
+			end
+			local scopes = vim.fn.json_decode(vim.fn.readfile(git_scopes_file))
 			local items = {}
 			for _, scope in ipairs(scopes) do
 				table.insert(items, { label = scope, documentation = "Git repo scope." })
