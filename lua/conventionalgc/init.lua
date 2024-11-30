@@ -77,7 +77,8 @@ conventionalgc.setup = function()
 		elseif previous_charater == "!" then
 			vim.notify = require("notify")
 			vim.notify("Add 'BREAKING-CHANGES: <explanition>' to the footer.", vim.log.levels.WARN, {
-				title = "BREAKING CHANGES indicator founded" --[[ , render = "wrapped-compact" ]],
+				title = "BREAKING CHANGES indicator founded",
+				render = "wrapped-compact",
 			})
 		end
 		if not should_complete then
