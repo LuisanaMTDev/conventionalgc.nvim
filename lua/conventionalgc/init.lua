@@ -49,7 +49,7 @@ conventionalgc.setup = function()
 	end
 
 	source.get_trigger_characters = function()
-		return { "f", "d", "s", "r", "p", "t", "b", "c", "m", "(" }
+		return { "f", "d", "s", "r", "p", "t", "b", "c", "m", "(", "!" }
 	end
 
 	source.get_keyword_pattern = function()
@@ -74,6 +74,11 @@ conventionalgc.setup = function()
 		local previous_charater = full_line:sub(col - 1, col - 1)
 		if previous_charater == "(" then
 			should_complete = true
+		elseif previous_charater == "!" then
+			vim.notify = require("notify")
+			vim.notify("Add 'BREAKING-CHANGES: <explanition>' to the footer.", vim.log.levels.WARN, {
+				title = "BREAKING CHANGES indicator founded" --[[ , render = "wrapped-compact" ]],
+			})
 		end
 		if not should_complete then
 			callback({ isIncomplete = true })
